@@ -3,11 +3,13 @@
 All other setup configuration is in `pyproject.toml`.
 """
 
+import os
 from distutils.sysconfig import get_config_var
 from os import environ
 from pathlib import Path
 from shutil import copy
 import sys
+import sysconfig
 
 from setuptools import Command, Extension, setup
 
@@ -119,8 +121,29 @@ if FLAG_COVERAGE in sys.argv or environ.get("CYTHON_COVERAGE", None):
         sys.argv.remove(FLAG_COVERAGE)
     print('enable: "linetrace" Cython compiler directive')
 
+base_prefix = Path(sysconfig.get_config_var("prefix"))
+
 include_dirs = get_dirs("UDUNITS2_INCDIR", "INCLUDEDIR")
 library_dirs = get_dirs("UDUNITS2_LIBDIR", "LIBDIR")
+
+if (not include_dirs) and (not library_dirs) and sys.platform == "win32":
+    # conda fallback with conda installed udunits
+    if base_prefix.joinpath("Library/lib/").exists():
+        library_dirs = [str(base_prefix.joinpath("Library/lib/").resolve())]
+        include_dirs = [str(base_prefix.joinpath("Library/includes/").resolve())]
+
+        if (
+            "UDUNITS2_XML_PATH" not in os.environ
+            and base_prefix.joinpath(
+                "Library/share/udunits/udunits2-common.xml"
+            ).exists()
+        ):
+            os.environ["UDUNITS2_XML_PATH"] = str(
+                base_prefix.joinpath(
+                    "Library/share/udunits/udunits2-common.xml"
+                ).resolve()
+            )
+
 
 # Some of the complexity MUST remain in setup.py due to its dynamic nature. To
 #  reduce confusion, the Extension is 100% defined here, rather than splitting
