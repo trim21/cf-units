@@ -130,7 +130,7 @@ if (not include_dirs) and (not library_dirs) and sys.platform == "win32":
     # conda fallback with conda installed udunits
     if base_prefix.joinpath("Library/lib/").exists():
         library_dirs = [str(base_prefix.joinpath("Library/lib/").resolve())]
-        include_dirs = [str(base_prefix.joinpath("Library/includes/").resolve())]
+        include_dirs = [str(base_prefix.joinpath("Library/include/").resolve())]
 
         if (
             "UDUNITS2_XML_PATH" not in os.environ
